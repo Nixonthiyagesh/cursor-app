@@ -38,8 +38,8 @@ graph TB
 
     %% Pro Plan Components
     subgraph Pro ["☁️ Pro Plan - Cloud Based"]
-        ProAPI["🚀 Backend API<br/>(Node.js + Express)"]
-        ProDB["🗄️ Database<br/>(PostgreSQL/MongoDB)"]
+        ProAPI["🚀 Backend API<br/>(Node.js + Express.js)"]
+        ProDB["🗄️ Database<br/>(MongoDB)"]
         ProSync["🔄 Multi-Device Sync<br/>Real-time Updates"]
         ProBackup["💾 Cloud Backup<br/>& Recovery"]
         ProExport["📤 Advanced Export<br/>(Server Processing)"]
@@ -138,8 +138,8 @@ graph TB
 
 - **Frontend**: React 18 + TypeScript + Shadcn UI
 - **Charts**: Recharts library
-- **Backend**: Node.js + Express + TypeScript
-- **Database**: PostgreSQL (primary) + Redis (cache)
+- **Backend**: Node.js + Express.js + TypeScript
+- **Database**: MongoDB (primary) + Redis (cache)
 - **Storage**: AWS S3 for file storage
 - **Authentication**: JWT + OAuth 2.0
 - **Real-time**: WebSocket connections
