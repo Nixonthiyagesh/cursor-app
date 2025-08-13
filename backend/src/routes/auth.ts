@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import { body, validationResult } from 'express-validator';
 import User from '../models/User';
@@ -8,10 +8,13 @@ const router = express.Router();
 
 // Generate JWT Token
 const generateToken = (userId: string): string => {
+  const secret = process.env.JWT_SECRET || 'fallback-secret';
+  const expiresIn = process.env.JWT_EXPIRES_IN || '7d';
+  
   return jwt.sign(
     { userId },
-    process.env.JWT_SECRET || 'fallback-secret',
-    { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+    secret,
+    { expiresIn }
   );
 };
 
@@ -24,7 +27,7 @@ router.post('/register', [
   body('firstName').trim().notEmpty(),
   body('lastName').trim().notEmpty(),
   body('businessName').trim().notEmpty()
-], async (req, res) => {
+], async (req: Request, res: Response) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -90,7 +93,7 @@ router.post('/register', [
 router.post('/login', [
   body('email').isEmail().normalizeEmail(),
   body('password').notEmpty()
-], async (req, res) => {
+], async (req: Request, res: Response) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -162,12 +165,14 @@ router.post('/login', [
 // @route   GET /api/auth/me
 // @desc    Get current user
 // @access  Private
-router.get('/me', authMiddleware, async (req: any, res) => {
+router.get('/me', authMiddleware, async (req: Request, res: Response) => {
   try {
+    // Add user property to Request type
+    const user = (req as any).user;
     res.json({
       success: true,
       data: {
-        user: req.user
+        user: user
       }
     });
   } catch (error) {
@@ -182,23 +187,24 @@ router.get('/me', authMiddleware, async (req: any, res) => {
 // @route   PUT /api/auth/upgrade
 // @desc    Upgrade user to Pro plan
 // @access  Private
-router.put('/upgrade', authMiddleware, async (req: any, res) => {
+router.put('/upgrade', authMiddleware, async (req: Request, res: Response) => {
   try {
-    if (req.user.plan === 'pro') {
+    const user = (req as any).user;
+    if (user.plan === 'pro') {
       return res.status(400).json({
         success: false,
         message: 'User is already on Pro plan'
       });
     }
 
-    req.user.plan = 'pro';
-    await req.user.save();
+    user.plan = 'pro';
+    await user.save();
 
     res.json({
       success: true,
       message: 'Successfully upgraded to Pro plan',
       data: {
-        user: req.user
+        user: user
       }
     });
   } catch (error) {

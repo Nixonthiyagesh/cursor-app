@@ -1,17 +1,24 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import { body, validationResult } from 'express-validator';
 import User from '../models/User';
+
+// Extend Request interface for authenticated routes
+interface AuthRequest extends Request {
+  user?: any;
+}
 
 const router = express.Router();
 
 // @route   GET /api/users/profile
 // @desc    Get user profile
 // @access  Private
-router.get('/profile', async (req: any, res) => {
+router.get('/profile', async (req: AuthRequest, res: Response) => {
   try {
     res.json({
       success: true,
-      data: { user: req.user }
+      data: {
+        user: req.user
+      }
     });
   } catch (error) {
     console.error('Get profile error:', error);
@@ -29,7 +36,7 @@ router.put('/profile', [
   body('firstName').optional().trim().notEmpty(),
   body('lastName').optional().trim().notEmpty(),
   body('businessName').optional().trim().notEmpty()
-], async (req: any, res) => {
+], async (req: AuthRequest, res: Response) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -73,7 +80,7 @@ router.put('/profile', [
 router.put('/change-password', [
   body('currentPassword').notEmpty(),
   body('newPassword').isLength({ min: 6 })
-], async (req: any, res) => {
+], async (req: AuthRequest, res: Response) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {

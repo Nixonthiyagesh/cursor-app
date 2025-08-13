@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import User from '../models/User';
 
+// Extend the Request interface to include user property
 interface AuthRequest extends Request {
   user?: any;
 }
@@ -34,7 +35,7 @@ export const authMiddleware = async (req: AuthRequest, res: Response, next: Next
 
 export const proPlanMiddleware = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    if (req.user.plan !== 'pro') {
+    if (req.user && req.user.plan !== 'pro') {
       return res.status(403).json({ 
         message: 'This feature requires a Pro plan subscription.' 
       });

@@ -1,6 +1,11 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import { body, validationResult, query } from 'express-validator';
 import Sale from '../models/Sale';
+
+// Extend Request interface for authenticated routes
+interface AuthRequest extends Request {
+  user?: any;
+}
 
 const router = express.Router();
 
@@ -14,7 +19,7 @@ router.post('/', [
   body('unitPrice').isFloat({ min: 0 }),
   body('category').trim().notEmpty(),
   body('paymentMethod').isIn(['cash', 'card', 'transfer', 'other'])
-], async (req: any, res) => {
+], async (req: AuthRequest, res: Response) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -62,7 +67,7 @@ router.get('/', [
   query('endDate').optional().isISO8601(),
   query('category').optional().trim(),
   query('customerName').optional().trim()
-], async (req: any, res) => {
+], async (req: AuthRequest, res: Response) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -72,8 +77,8 @@ router.get('/', [
       });
     }
 
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 20;
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 20;
     const skip = (page - 1) * limit;
 
     // Build filter object
@@ -81,8 +86,8 @@ router.get('/', [
     
     if (req.query.startDate || req.query.endDate) {
       filter.saleDate = {};
-      if (req.query.startDate) filter.saleDate.$gte = new Date(req.query.startDate);
-      if (req.query.endDate) filter.saleDate.$lte = new Date(req.query.endDate);
+      if (req.query.startDate) filter.saleDate.$gte = new Date(req.query.startDate as string);
+      if (req.query.endDate) filter.saleDate.$lte = new Date(req.query.endDate as string);
     }
     
     if (req.query.category) filter.category = req.query.category;
@@ -122,7 +127,7 @@ router.get('/', [
 // @route   GET /api/sales/:id
 // @desc    Get sale by ID
 // @access  Private
-router.get('/:id', async (req: any, res) => {
+router.get('/:id', async (req: AuthRequest, res: Response) => {
   try {
     const sale = await Sale.findOne({ 
       _id: req.params.id, 
@@ -159,7 +164,7 @@ router.put('/:id', [
   body('unitPrice').optional().isFloat({ min: 0 }),
   body('category').optional().trim().notEmpty(),
   body('paymentMethod').optional().isIn(['cash', 'card', 'transfer', 'other'])
-], async (req: any, res) => {
+], async (req: AuthRequest, res: Response) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -204,7 +209,7 @@ router.put('/:id', [
 // @route   DELETE /api/sales/:id
 // @desc    Delete sale
 // @access  Private
-router.delete('/:id', async (req: any, res) => {
+router.delete('/:id', async (req: AuthRequest, res: Response) => {
   try {
     const sale = await Sale.findOneAndDelete({ 
       _id: req.params.id, 
@@ -239,15 +244,15 @@ router.delete('/:id', async (req: any, res) => {
 // @route   GET /api/sales/stats/summary
 // @desc    Get sales summary statistics
 // @access  Private
-router.get('/stats/summary', async (req: any, res) => {
+router.get('/stats/summary', async (req: AuthRequest, res: Response) => {
   try {
     const { startDate, endDate } = req.query;
     
     const filter: any = { userId: req.user._id };
     if (startDate || endDate) {
       filter.saleDate = {};
-      if (startDate) filter.saleDate.$gte = new Date(startDate);
-      if (endDate) filter.saleDate.$lte = new Date(endDate);
+      if (startDate) filter.saleDate.$gte = new Date(startDate as string);
+      if (endDate) filter.saleDate.$lte = new Date(endDate as string);
     }
 
     const [totalSales, totalRevenue, avgOrderValue, topCategories] = await Promise.all([

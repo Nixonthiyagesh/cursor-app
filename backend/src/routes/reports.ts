@@ -1,8 +1,13 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import { query, validationResult } from 'express-validator';
 import Sale from '../models/Sale';
 import Expense from '../models/Expense';
 import { proPlanMiddleware } from '../middleware/auth';
+
+// Extend Request interface for authenticated routes
+interface AuthRequest extends Request {
+  user?: any;
+}
 
 const router = express.Router();
 
@@ -12,7 +17,7 @@ const router = express.Router();
 router.get('/profit-loss', [
   query('startDate').isISO8601(),
   query('endDate').isISO8601()
-], async (req: any, res) => {
+], async (req: AuthRequest, res: Response) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -26,16 +31,16 @@ router.get('/profit-loss', [
     const filter = { 
       userId: req.user._id,
       saleDate: { 
-        $gte: new Date(startDate), 
-        $lte: new Date(endDate) 
+        $gte: new Date(startDate as string), 
+        $lte: new Date(endDate as string) 
       }
     };
 
     const expenseFilter = { 
       userId: req.user._id,
       expenseDate: { 
-        $gte: new Date(startDate), 
-        $lte: new Date(endDate) 
+        $gte: new Date(startDate as string), 
+        $lte: new Date(endDate as string) 
       }
     };
 
@@ -81,7 +86,7 @@ router.get('/profit-loss', [
 router.get('/sales-analysis', [
   query('startDate').isISO8601(),
   query('endDate').isISO8601()
-], async (req: any, res) => {
+], async (req: AuthRequest, res: Response) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -95,8 +100,8 @@ router.get('/sales-analysis', [
     const filter = { 
       userId: req.user._id,
       saleDate: { 
-        $gte: new Date(startDate), 
-        $lte: new Date(endDate) 
+        $gte: new Date(startDate as string), 
+        $lte: new Date(endDate as string) 
       }
     };
 
@@ -173,7 +178,7 @@ router.get('/sales-analysis', [
 router.get('/expense-breakdown', [
   query('startDate').isISO8601(),
   query('endDate').isISO8601()
-], async (req: any, res) => {
+], async (req: AuthRequest, res: Response) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -187,8 +192,8 @@ router.get('/expense-breakdown', [
     const filter = { 
       userId: req.user._id,
       expenseDate: { 
-        $gte: new Date(startDate), 
-        $lte: new Date(endDate) 
+        $gte: new Date(startDate as string), 
+        $lte: new Date(endDate as string) 
       }
     };
 
@@ -269,7 +274,7 @@ router.get('/export/excel', proPlanMiddleware, [
   query('startDate').isISO8601(),
   query('endDate').isISO8601(),
   query('reportType').isIn(['sales', 'expenses', 'profit-loss'])
-], async (req: any, res) => {
+], async (req: AuthRequest, res: Response) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {

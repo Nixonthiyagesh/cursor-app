@@ -1,6 +1,11 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import { body, validationResult, query } from 'express-validator';
 import Expense from '../models/Expense';
+
+// Extend Request interface for authenticated routes
+interface AuthRequest extends Request {
+  user?: any;
+}
 
 const router = express.Router();
 
@@ -13,7 +18,7 @@ router.post('/', [
   body('category').trim().notEmpty(),
   body('expenseDate').optional().isISO8601(),
   body('paymentMethod').optional().isIn(['cash', 'card', 'transfer', 'other'])
-], async (req: any, res) => {
+], async (req: AuthRequest, res: Response) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -62,7 +67,7 @@ router.get('/', [
   query('category').optional().trim(),
   query('minAmount').optional().isFloat({ min: 0 }),
   query('maxAmount').optional().isFloat({ min: 0 })
-], async (req: any, res) => {
+], async (req: AuthRequest, res: Response) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -72,8 +77,8 @@ router.get('/', [
       });
     }
 
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 20;
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 20;
     const skip = (page - 1) * limit;
 
     // Build filter object
@@ -81,15 +86,15 @@ router.get('/', [
     
     if (req.query.startDate || req.query.endDate) {
       filter.expenseDate = {};
-      if (req.query.startDate) filter.expenseDate.$gte = new Date(req.query.startDate);
-      if (req.query.endDate) filter.expenseDate.$lte = new Date(req.query.endDate);
+      if (req.query.startDate) filter.expenseDate.$gte = new Date(req.query.startDate as string);
+      if (req.query.endDate) filter.expenseDate.$lte = new Date(req.query.endDate as string);
     }
     
     if (req.query.category) filter.category = req.query.category;
     if (req.query.minAmount || req.query.maxAmount) {
       filter.amount = {};
-      if (req.query.minAmount) filter.amount.$gte = parseFloat(req.query.minAmount);
-      if (req.query.maxAmount) filter.amount.$lte = parseFloat(req.query.maxAmount);
+      if (req.query.minAmount) filter.amount.$gte = parseFloat(req.query.minAmount as string);
+      if (req.query.maxAmount) filter.amount.$lte = parseFloat(req.query.maxAmount as string);
     }
 
     const [expenses, total] = await Promise.all([
@@ -124,15 +129,15 @@ router.get('/', [
 // @route   GET /api/expenses/stats/summary
 // @desc    Get expense summary statistics
 // @access  Private
-router.get('/stats/summary', async (req: any, res) => {
+router.get('/stats/summary', async (req: AuthRequest, res: Response) => {
   try {
     const { startDate, endDate } = req.query;
     
     const filter: any = { userId: req.user._id };
     if (startDate || endDate) {
       filter.expenseDate = {};
-      if (startDate) filter.expenseDate.$gte = new Date(startDate);
-      if (endDate) filter.expenseDate.$lte = new Date(endDate);
+      if (startDate) filter.expenseDate.$gte = new Date(startDate as string);
+      if (endDate) filter.expenseDate.$lte = new Date(endDate as string);
     }
 
     const [totalExpenses, totalAmount, avgExpense, topCategories] = await Promise.all([
