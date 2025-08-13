@@ -28,9 +28,16 @@ router.post('/register', [
   body('lastName').trim().notEmpty(),
   body('businessName').trim().notEmpty()
 ], async (req: Request, res: Response) => {
+  console.log('🚀 Registration request received:', { 
+    email: req.body.email, 
+    businessName: req.body.businessName,
+    timestamp: new Date().toISOString()
+  });
+
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      console.log('❌ Validation errors:', errors.array());
       return res.status(400).json({ 
         success: false, 
         errors: errors.array() 
@@ -38,15 +45,19 @@ router.post('/register', [
     }
 
     const { email, password, firstName, lastName, businessName } = req.body;
+    console.log('✅ Validation passed, checking existing user...');
 
     // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
+      console.log('❌ User already exists:', email);
       return res.status(400).json({
         success: false,
         message: 'User with this email already exists'
       });
     }
+
+    console.log('✅ No existing user, creating new user...');
 
     // Create new user
     const user = new User({
@@ -58,11 +69,16 @@ router.post('/register', [
       plan: 'basic' // Default to basic plan
     });
 
+    console.log('💾 Saving user to database...');
     await user.save();
+    console.log('✅ User saved successfully:', user._id);
 
     // Generate token
+    console.log('🔑 Generating JWT token...');
     const token = generateToken(user._id);
+    console.log('✅ Token generated successfully');
 
+    console.log('🎉 Registration completed successfully');
     res.status(201).json({
       success: true,
       message: 'User registered successfully',
@@ -79,10 +95,28 @@ router.post('/register', [
       }
     });
   } catch (error) {
-    console.error('Registration error:', error);
+    console.error('💥 Registration error:', error);
+    
+    // Check if it's a MongoDB connection error
+    if (error.name === 'MongoNetworkError' || error.name === 'MongoServerSelectionError') {
+      return res.status(503).json({
+        success: false,
+        message: 'Database connection error. Please try again later.'
+      });
+    }
+    
+    // Check if it's a duplicate key error
+    if (error.code === 11000) {
+      return res.status(400).json({
+        success: false,
+        message: 'User with this email already exists'
+      });
+    }
+
     res.status(500).json({
       success: false,
-      message: 'Server error during registration'
+      message: 'Server error during registration',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
     });
   }
 });
