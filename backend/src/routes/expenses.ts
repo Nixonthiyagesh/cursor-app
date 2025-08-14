@@ -1,6 +1,7 @@
 import express, { Request, Response } from 'express';
 import { body, validationResult, query } from 'express-validator';
 import Expense from '../models/Expense';
+import { authMiddleware } from '../middleware/auth';
 
 // Extend Request interface for authenticated routes
 interface AuthRequest extends Request {
@@ -12,7 +13,7 @@ const router = express.Router();
 // @route   POST /api/expenses
 // @desc    Create a new expense
 // @access  Private
-router.post('/', [
+router.post('/', authMiddleware, [
   body('description').trim().notEmpty(),
   body('amount').isFloat({ min: 0.01 }),
   body('category').trim().notEmpty(),
@@ -59,7 +60,7 @@ router.post('/', [
 // @route   GET /api/expenses
 // @desc    Get all expenses for user with filters
 // @access  Private
-router.get('/', [
+router.get('/', authMiddleware, [
   query('page').optional().isInt({ min: 1 }),
   query('limit').optional().isInt({ min: 1, max: 100 }),
   query('startDate').optional().isISO8601(),
@@ -129,7 +130,7 @@ router.get('/', [
 // @route   GET /api/expenses/stats/summary
 // @desc    Get expense summary statistics
 // @access  Private
-router.get('/stats/summary', async (req: AuthRequest, res: Response) => {
+router.get('/stats/summary', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
     const { startDate, endDate } = req.query;
     

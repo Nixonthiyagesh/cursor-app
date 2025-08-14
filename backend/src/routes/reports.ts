@@ -2,7 +2,7 @@ import express, { Request, Response } from 'express';
 import { query, validationResult } from 'express-validator';
 import Sale from '../models/Sale';
 import Expense from '../models/Expense';
-import { proPlanMiddleware } from '../middleware/auth';
+import { proPlanMiddleware, authMiddleware } from '../middleware/auth';
 
 // Extend Request interface for authenticated routes
 interface AuthRequest extends Request {
@@ -14,7 +14,7 @@ const router = express.Router();
 // @route   GET /api/reports/profit-loss
 // @desc    Get profit & loss report
 // @access  Private
-router.get('/profit-loss', [
+router.get('/profit-loss', authMiddleware, [
   query('startDate').isISO8601(),
   query('endDate').isISO8601()
 ], async (req: AuthRequest, res: Response) => {
@@ -83,7 +83,7 @@ router.get('/profit-loss', [
 // @route   GET /api/reports/sales-analysis
 // @desc    Get detailed sales analysis
 // @access  Private
-router.get('/sales-analysis', [
+router.get('/sales-analysis', authMiddleware, [
   query('startDate').isISO8601(),
   query('endDate').isISO8601()
 ], async (req: AuthRequest, res: Response) => {
@@ -175,7 +175,7 @@ router.get('/sales-analysis', [
 // @route   GET /api/reports/expense-breakdown
 // @desc    Get detailed expense breakdown
 // @access  Private
-router.get('/expense-breakdown', [
+router.get('/expense-breakdown', authMiddleware, [
   query('startDate').isISO8601(),
   query('endDate').isISO8601()
 ], async (req: AuthRequest, res: Response) => {
@@ -270,7 +270,7 @@ router.get('/expense-breakdown', [
 // @route   GET /api/reports/export/excel
 // @desc    Export report to Excel (Pro plan only)
 // @access  Private
-router.get('/export/excel', proPlanMiddleware, [
+router.get('/export/excel', authMiddleware, proPlanMiddleware, [
   query('startDate').isISO8601(),
   query('endDate').isISO8601(),
   query('reportType').isIn(['sales', 'expenses', 'profit-loss'])

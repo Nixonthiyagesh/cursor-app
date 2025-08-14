@@ -6,11 +6,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const express_validator_1 = require("express-validator");
 const Sale_1 = __importDefault(require("../models/Sale"));
+const auth_1 = require("../middleware/auth");
 const router = express_1.default.Router();
 // @route   POST /api/sales
 // @desc    Create a new sale
 // @access  Private
-router.post('/', [
+router.post('/', auth_1.authMiddleware, [
     (0, express_validator_1.body)('customerName').trim().notEmpty(),
     (0, express_validator_1.body)('productName').trim().notEmpty(),
     (0, express_validator_1.body)('quantity').isInt({ min: 1 }),
@@ -54,7 +55,7 @@ router.post('/', [
 // @route   GET /api/sales
 // @desc    Get all sales for user with filters
 // @access  Private
-router.get('/', [
+router.get('/', auth_1.authMiddleware, [
     (0, express_validator_1.query)('page').optional().isInt({ min: 1 }),
     (0, express_validator_1.query)('limit').optional().isInt({ min: 1, max: 100 }),
     (0, express_validator_1.query)('startDate').optional().isISO8601(),
@@ -118,7 +119,7 @@ router.get('/', [
 // @route   GET /api/sales/:id
 // @desc    Get sale by ID
 // @access  Private
-router.get('/:id', async (req, res) => {
+router.get('/:id', auth_1.authMiddleware, async (req, res) => {
     try {
         const sale = await Sale_1.default.findOne({
             _id: req.params.id,
@@ -146,7 +147,7 @@ router.get('/:id', async (req, res) => {
 // @route   PUT /api/sales/:id
 // @desc    Update sale
 // @access  Private
-router.put('/:id', [
+router.put('/:id', auth_1.authMiddleware, [
     (0, express_validator_1.body)('customerName').optional().trim().notEmpty(),
     (0, express_validator_1.body)('productName').optional().trim().notEmpty(),
     (0, express_validator_1.body)('quantity').optional().isInt({ min: 1 }),
@@ -190,7 +191,7 @@ router.put('/:id', [
 // @route   DELETE /api/sales/:id
 // @desc    Delete sale
 // @access  Private
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', auth_1.authMiddleware, async (req, res) => {
     try {
         const sale = await Sale_1.default.findOneAndDelete({
             _id: req.params.id,
@@ -222,7 +223,7 @@ router.delete('/:id', async (req, res) => {
 // @route   GET /api/sales/stats/summary
 // @desc    Get sales summary statistics
 // @access  Private
-router.get('/stats/summary', async (req, res) => {
+router.get('/stats/summary', auth_1.authMiddleware, async (req, res) => {
     try {
         const { startDate, endDate } = req.query;
         const filter = { userId: req.user._id };

@@ -1,6 +1,7 @@
 import express, { Request, Response } from 'express';
 import { body, validationResult, query } from 'express-validator';
 import Sale from '../models/Sale';
+import { authMiddleware } from '../middleware/auth';
 
 // Extend Request interface for authenticated routes
 interface AuthRequest extends Request {
@@ -12,7 +13,7 @@ const router = express.Router();
 // @route   POST /api/sales
 // @desc    Create a new sale
 // @access  Private
-router.post('/', [
+router.post('/', authMiddleware, [
   body('customerName').trim().notEmpty(),
   body('productName').trim().notEmpty(),
   body('quantity').isInt({ min: 1 }),
@@ -60,7 +61,7 @@ router.post('/', [
 // @route   GET /api/sales
 // @desc    Get all sales for user with filters
 // @access  Private
-router.get('/', [
+router.get('/', authMiddleware, [
   query('page').optional().isInt({ min: 1 }),
   query('limit').optional().isInt({ min: 1, max: 100 }),
   query('startDate').optional().isISO8601(),
@@ -127,7 +128,7 @@ router.get('/', [
 // @route   GET /api/sales/:id
 // @desc    Get sale by ID
 // @access  Private
-router.get('/:id', async (req: AuthRequest, res: Response) => {
+router.get('/:id', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
     const sale = await Sale.findOne({ 
       _id: req.params.id, 
@@ -157,7 +158,7 @@ router.get('/:id', async (req: AuthRequest, res: Response) => {
 // @route   PUT /api/sales/:id
 // @desc    Update sale
 // @access  Private
-router.put('/:id', [
+router.put('/:id', authMiddleware, [
   body('customerName').optional().trim().notEmpty(),
   body('productName').optional().trim().notEmpty(),
   body('quantity').optional().isInt({ min: 1 }),
@@ -209,7 +210,7 @@ router.put('/:id', [
 // @route   DELETE /api/sales/:id
 // @desc    Delete sale
 // @access  Private
-router.delete('/:id', async (req: AuthRequest, res: Response) => {
+router.delete('/:id', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
     const sale = await Sale.findOneAndDelete({ 
       _id: req.params.id, 
@@ -244,7 +245,7 @@ router.delete('/:id', async (req: AuthRequest, res: Response) => {
 // @route   GET /api/sales/stats/summary
 // @desc    Get sales summary statistics
 // @access  Private
-router.get('/stats/summary', async (req: AuthRequest, res: Response) => {
+router.get('/stats/summary', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
     const { startDate, endDate } = req.query;
     

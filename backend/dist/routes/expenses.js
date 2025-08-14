@@ -6,11 +6,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const express_validator_1 = require("express-validator");
 const Expense_1 = __importDefault(require("../models/Expense"));
+const auth_1 = require("../middleware/auth");
 const router = express_1.default.Router();
 // @route   POST /api/expenses
 // @desc    Create a new expense
 // @access  Private
-router.post('/', [
+router.post('/', auth_1.authMiddleware, [
     (0, express_validator_1.body)('description').trim().notEmpty(),
     (0, express_validator_1.body)('amount').isFloat({ min: 0.01 }),
     (0, express_validator_1.body)('category').trim().notEmpty(),
@@ -53,7 +54,7 @@ router.post('/', [
 // @route   GET /api/expenses
 // @desc    Get all expenses for user with filters
 // @access  Private
-router.get('/', [
+router.get('/', auth_1.authMiddleware, [
     (0, express_validator_1.query)('page').optional().isInt({ min: 1 }),
     (0, express_validator_1.query)('limit').optional().isInt({ min: 1, max: 100 }),
     (0, express_validator_1.query)('startDate').optional().isISO8601(),
@@ -122,7 +123,7 @@ router.get('/', [
 // @route   GET /api/expenses/stats/summary
 // @desc    Get expense summary statistics
 // @access  Private
-router.get('/stats/summary', async (req, res) => {
+router.get('/stats/summary', auth_1.authMiddleware, async (req, res) => {
     try {
         const { startDate, endDate } = req.query;
         const filter = { userId: req.user._id };

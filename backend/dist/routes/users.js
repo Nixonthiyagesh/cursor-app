@@ -6,11 +6,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const express_validator_1 = require("express-validator");
 const User_1 = __importDefault(require("../models/User"));
+const auth_1 = require("../middleware/auth");
 const router = express_1.default.Router();
 // @route   GET /api/users/profile
 // @desc    Get user profile
 // @access  Private
-router.get('/profile', async (req, res) => {
+router.get('/profile', auth_1.authMiddleware, async (req, res) => {
     try {
         res.json({
             success: true,
@@ -30,7 +31,7 @@ router.get('/profile', async (req, res) => {
 // @route   PUT /api/users/profile
 // @desc    Update user profile
 // @access  Private
-router.put('/profile', [
+router.put('/profile', auth_1.authMiddleware, [
     (0, express_validator_1.body)('firstName').optional().trim().notEmpty(),
     (0, express_validator_1.body)('lastName').optional().trim().notEmpty(),
     (0, express_validator_1.body)('businessName').optional().trim().notEmpty()
@@ -68,7 +69,7 @@ router.put('/profile', [
 // @route   PUT /api/users/change-password
 // @desc    Change user password
 // @access  Private
-router.put('/change-password', [
+router.put('/change-password', auth_1.authMiddleware, [
     (0, express_validator_1.body)('currentPassword').notEmpty(),
     (0, express_validator_1.body)('newPassword').isLength({ min: 6 })
 ], async (req, res) => {

@@ -1,6 +1,7 @@
 import express, { Request, Response } from 'express';
 import { body, validationResult } from 'express-validator';
 import User from '../models/User';
+import { authMiddleware } from '../middleware/auth';
 
 // Extend Request interface for authenticated routes
 interface AuthRequest extends Request {
@@ -12,7 +13,7 @@ const router = express.Router();
 // @route   GET /api/users/profile
 // @desc    Get user profile
 // @access  Private
-router.get('/profile', async (req: AuthRequest, res: Response) => {
+router.get('/profile', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
     res.json({
       success: true,
@@ -32,7 +33,7 @@ router.get('/profile', async (req: AuthRequest, res: Response) => {
 // @route   PUT /api/users/profile
 // @desc    Update user profile
 // @access  Private
-router.put('/profile', [
+router.put('/profile', authMiddleware, [
   body('firstName').optional().trim().notEmpty(),
   body('lastName').optional().trim().notEmpty(),
   body('businessName').optional().trim().notEmpty()
@@ -77,7 +78,7 @@ router.put('/profile', [
 // @route   PUT /api/users/change-password
 // @desc    Change user password
 // @access  Private
-router.put('/change-password', [
+router.put('/change-password', authMiddleware, [
   body('currentPassword').notEmpty(),
   body('newPassword').isLength({ min: 6 })
 ], async (req: AuthRequest, res: Response) => {

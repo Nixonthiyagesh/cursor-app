@@ -12,7 +12,7 @@ const router = express_1.default.Router();
 // @route   GET /api/reports/profit-loss
 // @desc    Get profit & loss report
 // @access  Private
-router.get('/profit-loss', [
+router.get('/profit-loss', auth_1.authMiddleware, [
     (0, express_validator_1.query)('startDate').isISO8601(),
     (0, express_validator_1.query)('endDate').isISO8601()
 ], async (req, res) => {
@@ -76,7 +76,7 @@ router.get('/profit-loss', [
 // @route   GET /api/reports/sales-analysis
 // @desc    Get detailed sales analysis
 // @access  Private
-router.get('/sales-analysis', [
+router.get('/sales-analysis', auth_1.authMiddleware, [
     (0, express_validator_1.query)('startDate').isISO8601(),
     (0, express_validator_1.query)('endDate').isISO8601()
 ], async (req, res) => {
@@ -165,7 +165,7 @@ router.get('/sales-analysis', [
 // @route   GET /api/reports/expense-breakdown
 // @desc    Get detailed expense breakdown
 // @access  Private
-router.get('/expense-breakdown', [
+router.get('/expense-breakdown', auth_1.authMiddleware, [
     (0, express_validator_1.query)('startDate').isISO8601(),
     (0, express_validator_1.query)('endDate').isISO8601()
 ], async (req, res) => {
@@ -257,7 +257,7 @@ router.get('/expense-breakdown', [
 // @route   GET /api/reports/export/excel
 // @desc    Export report to Excel (Pro plan only)
 // @access  Private
-router.get('/export/excel', auth_1.proPlanMiddleware, [
+router.get('/export/excel', auth_1.authMiddleware, auth_1.proPlanMiddleware, [
     (0, express_validator_1.query)('startDate').isISO8601(),
     (0, express_validator_1.query)('endDate').isISO8601(),
     (0, express_validator_1.query)('reportType').isIn(['sales', 'expenses', 'profit-loss'])
