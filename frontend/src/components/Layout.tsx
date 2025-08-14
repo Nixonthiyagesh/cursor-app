@@ -19,12 +19,12 @@ import {
 import { cn } from '../lib/utils'
 
 const navigation = [
-  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'Sales', href: '/sales', icon: TrendingUp },
-  { name: 'Expenses', href: '/expenses', icon: CreditCard },
-  { name: 'Reports', href: '/reports', icon: BarChart3 },
-  { name: 'Calendar', href: '/calendar', icon: Calendar },
-  { name: 'Profile', href: '/profile', icon: User },
+  { name: 'Dashboard', href: '/app/dashboard', icon: LayoutDashboard },
+  { name: 'Sales', href: '/app/sales', icon: TrendingUp },
+  { name: 'Expenses', href: '/app/expenses', icon: CreditCard },
+  { name: 'Reports', href: '/app/reports', icon: BarChart3 },
+  { name: 'Calendar', href: '/app/calendar', icon: Calendar },
+  { name: 'Profile', href: '/app/profile', icon: User },
 ]
 
 export default function Layout() {
@@ -118,58 +118,52 @@ export default function Layout() {
 
       {/* Main content */}
       <div className="lg:pl-64">
-        {/* Header */}
-        <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b bg-background px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
+        {/* Top bar */}
+        <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
           <button
             type="button"
-            className="-m-2.5 p-2.5 text-muted-foreground lg:hidden"
+            className="-m-2.5 p-2.5 text-gray-700 lg:hidden"
             onClick={() => setSidebarOpen(true)}
           >
+            <span className="sr-only">Open sidebar</span>
             <Menu className="h-6 w-6" />
           </button>
 
           <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
             <div className="flex flex-1"></div>
             <div className="flex items-center gap-x-4 lg:gap-x-6">
-              {/* Plan indicator */}
-              <div className="flex items-center gap-x-2">
-                {user?.plan === 'pro' && (
-                  <Crown className="h-5 w-5 text-yellow-500" />
-                )}
-                <span className={cn(
-                  "px-2 py-1 text-xs font-medium rounded-full",
-                  user?.plan === 'pro' 
-                    ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
-                    : "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200"
-                )}>
-                  {user?.plan === 'pro' ? 'Pro Plan' : 'Basic Plan'}
-                </span>
-              </div>
-
               {/* Theme toggle */}
               <button
                 onClick={toggleTheme}
-                className="p-2 hover:bg-accent rounded-md transition-colors"
+                className="p-2 text-gray-500 hover:text-gray-700 transition-colors"
+                title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
               >
-                {theme === 'light' ? (
-                  <Moon className="h-5 w-5" />
-                ) : (
+                {theme === 'dark' ? (
                   <Sun className="h-5 w-5" />
+                ) : (
+                  <Moon className="h-5 w-5" />
                 )}
               </button>
 
               {/* User menu */}
-              <div className="flex items-center gap-x-2">
-                <span className="text-sm font-medium text-muted-foreground">
-                  {user?.firstName} {user?.lastName}
-                </span>
-                <button
-                  onClick={logout}
-                  className="p-2 hover:bg-accent rounded-md transition-colors"
-                  title="Logout"
-                >
-                  <LogOut className="h-5 w-5" />
-                </button>
+              <div className="relative">
+                <div className="flex items-center gap-x-4">
+                  <div className="flex items-center gap-x-2">
+                    {user?.plan === 'pro' && (
+                      <Crown className="h-4 w-4 text-yellow-500" title="Pro Plan" />
+                    )}
+                    <span className="text-sm font-medium text-gray-900">
+                      {user?.firstName} {user?.lastName}
+                    </span>
+                  </div>
+                  <button
+                    onClick={logout}
+                    className="flex items-center gap-x-2 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Logout
+                  </button>
+                </div>
               </div>
             </div>
           </div>
