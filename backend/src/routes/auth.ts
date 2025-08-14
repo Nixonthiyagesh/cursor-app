@@ -9,13 +9,15 @@ const router = express.Router();
 // Generate JWT Token
 const generateToken = (userId: string): string => {
   const secret = process.env.JWT_SECRET || 'fallback-secret';
-  const expiresIn = process.env.JWT_EXPIRES_IN || '7d';
   
-  return jwt.sign(
-    { userId },
-    secret,
-    { expiresIn }
-  );
+  if (!secret) {
+    throw new Error('JWT_SECRET is not defined');
+  }
+  
+  const payload = { userId };
+  const options = { expiresIn: '7d' as const };
+  
+  return jwt.sign(payload, secret, options);
 };
 
 // @route   POST /api/auth/register
@@ -75,7 +77,7 @@ router.post('/register', [
 
     // Generate token
     console.log('🔑 Generating JWT token...');
-    const token = generateToken(user._id);
+    const token = generateToken((user._id as any).toString());
     console.log('✅ Token generated successfully');
 
     console.log('🎉 Registration completed successfully');
@@ -94,7 +96,7 @@ router.post('/register', [
         token
       }
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('💥 Registration error:', error);
     
     // Check if it's a MongoDB connection error
@@ -170,7 +172,7 @@ router.post('/login', [
     await user.save();
 
     // Generate token
-    const token = generateToken(user._id);
+    const token = generateToken((user._id as any).toString());
 
     res.json({
       success: true,
@@ -187,7 +189,7 @@ router.post('/login', [
         token
       }
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Login error:', error);
     res.status(500).json({
       success: false,

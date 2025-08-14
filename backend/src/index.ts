@@ -73,12 +73,33 @@ app.post('/api/test', (req, res) => {
   });
 });
 
+// Test basic route
+app.get('/api/basic', (req, res) => {
+  res.json({ message: 'Basic route working!' });
+});
+
+// Test route with params
+app.get('/api/echo/:message', (req, res) => {
+  res.json({ 
+    message: 'Echo route working!',
+    echo: req.params.message,
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Routes
+console.log('🔧 Loading routes...');
 app.use('/api/auth', authRoutes);
+console.log('✅ Auth routes loaded');
 app.use('/api/sales', salesRoutes);
+console.log('✅ Sales routes loaded');
 app.use('/api/expenses', expensesRoutes);
+console.log('✅ Expenses routes loaded');
 app.use('/api/reports', reportsRoutes);
+console.log('✅ Reports routes loaded');
 app.use('/api/users', usersRoutes);
+console.log('✅ Users routes loaded');
+console.log('🎯 All routes loaded successfully!');
 
 // Socket.io connection handling
 io.on('connection', (socket) => {
@@ -104,12 +125,14 @@ const connectDB = async () => {
     await mongoose.connect(mongoURI);
     
     console.log('✅ Connected to MongoDB successfully!');
-    console.log('📊 Database:', mongoose.connection.db.databaseName);
+    console.log('📊 Database:', mongoose.connection.db?.databaseName || 'Unknown');
     console.log('🔗 Connection state:', mongoose.connection.readyState);
     
     // Test the connection
-    const collections = await mongoose.connection.db.listCollections().toArray();
-    console.log('📚 Available collections:', collections.map(c => c.name));
+    if (mongoose.connection.db) {
+      const collections = await mongoose.connection.db.listCollections().toArray();
+      console.log('📚 Available collections:', collections.map(c => c.name));
+    }
     
   } catch (error) {
     console.error('❌ MongoDB connection error:', error);
@@ -165,7 +188,7 @@ process.on('SIGTERM', () => {
   console.log('🛑 SIGTERM received, shutting down gracefully...');
   server.close(() => {
     console.log('✅ Server closed');
-    mongoose.connection.close(false, () => {
+    mongoose.connection.close().then(() => {
       console.log('✅ Database connection closed');
       process.exit(0);
     });
@@ -176,7 +199,7 @@ process.on('SIGINT', () => {
   console.log('🛑 SIGINT received, shutting down gracefully...');
   server.close(() => {
     console.log('✅ Server closed');
-    mongoose.connection.close(false, () => {
+    mongoose.connection.close().then(() => {
       console.log('✅ Database connection closed');
       process.exit(0);
     });

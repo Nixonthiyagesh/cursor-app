@@ -94,6 +94,13 @@ router.put('/change-password', [
 
     // Verify current password
     const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+    
     const isMatch = await user.comparePassword(currentPassword);
     
     if (!isMatch) {
