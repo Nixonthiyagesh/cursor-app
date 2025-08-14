@@ -14,6 +14,7 @@ import expenseRoutes from './routes/expenses';
 import reportRoutes from './routes/reports';
 import calendarRoutes from './routes/calendar';
 import paymentRoutes from './routes/payments';
+import dashboardRoutes from './routes/dashboard';
 import { errorHandler } from './middleware/errorHandler';
 import { authMiddleware } from './middleware/auth';
 
@@ -81,6 +82,7 @@ app.use('/api/expenses', authMiddleware, expenseRoutes);
 app.use('/api/reports', authMiddleware, reportRoutes);
 app.use('/api/calendar', authMiddleware, calendarRoutes);
 app.use('/api/payments', paymentRoutes);
+app.use('/api/dashboard', authMiddleware, dashboardRoutes);
 
 // Health check
 app.get('/api/health', (req, res: any) => {

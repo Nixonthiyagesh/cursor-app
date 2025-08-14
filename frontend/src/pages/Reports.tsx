@@ -70,11 +70,21 @@ export default function Reports() {
       setLoading(true)
       const { startDate, endDate } = getDateRange()
       
+      console.log('Generating Profit & Loss report for:', { startDate, endDate })
+      
       const response = await api.get(`/reports/profit-loss?startDate=${startDate}&endDate=${endDate}`)
-      setProfitLossData(response.data.data)
-      toast.success('Profit & Loss report generated successfully')
+      console.log('Profit & Loss response:', response.data)
+      
+      if (response.data.success) {
+        setProfitLossData(response.data.data)
+        toast.success('Profit & Loss report generated successfully')
+      } else {
+        toast.error(response.data.message || 'Failed to generate Profit & Loss report')
+      }
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to generate Profit & Loss report')
+      console.error('Profit & Loss report error:', error)
+      const message = error.response?.data?.message || error.message || 'Failed to generate Profit & Loss report'
+      toast.error(message)
     } finally {
       setLoading(false)
     }
@@ -85,11 +95,21 @@ export default function Reports() {
       setLoading(true)
       const { startDate, endDate } = getDateRange()
       
+      console.log('Generating Sales Analysis report for:', { startDate, endDate })
+      
       const response = await api.get(`/reports/sales-analysis?startDate=${startDate}&endDate=${endDate}`)
-      setSalesAnalysisData(response.data.data)
-      toast.success('Sales Analysis report generated successfully')
+      console.log('Sales Analysis response:', response.data)
+      
+      if (response.data.success) {
+        setSalesAnalysisData(response.data.data)
+        toast.success('Sales Analysis report generated successfully')
+      } else {
+        toast.error(response.data.message || 'Failed to generate Sales Analysis report')
+      }
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to generate Sales Analysis report')
+      console.error('Sales Analysis report error:', error)
+      const message = error.response?.data?.message || error.message || 'Failed to generate Sales Analysis report'
+      toast.error(message)
     } finally {
       setLoading(false)
     }
@@ -100,11 +120,21 @@ export default function Reports() {
       setLoading(true)
       const { startDate, endDate } = getDateRange()
       
+      console.log('Generating Expense Breakdown report for:', { startDate, endDate })
+      
       const response = await api.get(`/reports/expense-breakdown?startDate=${startDate}&endDate=${endDate}`)
-      setExpenseBreakdownData(response.data.data)
-      toast.success('Expense Breakdown report generated successfully')
+      console.log('Expense Breakdown response:', response.data)
+      
+      if (response.data.success) {
+        setExpenseBreakdownData(response.data.data)
+        toast.success('Expense Breakdown report generated successfully')
+      } else {
+        toast.error(response.data.message || 'Failed to generate Expense Breakdown report')
+      }
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to generate Expense Breakdown report')
+      console.error('Expense Breakdown report error:', error)
+      const message = error.response?.data?.message || error.message || 'Failed to generate Expense Breakdown report'
+      toast.error(message)
     } finally {
       setLoading(false)
     }
@@ -119,7 +149,11 @@ export default function Reports() {
         return
       }
       
-      const response = await api.get(`/reports/${reportType}/export?startDate=${startDate}&endDate=${endDate}`, {
+      // Use the correct endpoint for each report type
+      const endpoint = `/reports/${reportType}/export`
+      
+      const response = await api.get(endpoint, {
+        params: { startDate, endDate },
         responseType: 'blob'
       })
       
@@ -134,6 +168,7 @@ export default function Reports() {
       
       toast.success('Report downloaded successfully')
     } catch (error: any) {
+      console.error('Download error:', error)
       toast.error(error.response?.data?.message || 'Failed to download report')
     }
   }
