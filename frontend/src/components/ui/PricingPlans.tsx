@@ -38,7 +38,7 @@ const plans: PricingPlan[] = [
     id: 'pro',
     name: 'Pro',
     price: '$29',
-    priceId: 'price_1OqX2X2X2X2X2X2X2X2X2X2X', // Replace with your actual Stripe price ID
+    priceId: 'price_1OqX2X2X2X2X2X2X2X2X2X2X', // TODO: Replace with your actual Stripe Price ID from dashboard
     description: 'Advanced features for growing businesses',
     icon: Crown,
     color: 'from-purple-500 to-purple-600',
