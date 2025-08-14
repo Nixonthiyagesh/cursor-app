@@ -30,6 +30,8 @@ export default function HeroSection() {
     return () => clearInterval(interval)
   }, [features.length])
 
+  const currentFeatureData = features[currentFeature]
+
   return (
     <section className="relative pt-20 pb-32 overflow-hidden">
       {/* Background Elements */}
@@ -94,14 +96,14 @@ export default function HeroSection() {
             <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-white/20">
               <div className="flex items-center justify-center mb-4">
                 <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-2xl flex items-center justify-center">
-                  <features[currentFeature].icon className="w-8 h-8 text-white" />
+                  <currentFeatureData.icon className="w-8 h-8 text-white" />
                 </div>
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                {features[currentFeature].title}
+                {currentFeatureData.title}
               </h3>
               <p className="text-gray-600 text-center">
-                {features[currentFeature].description}
+                {currentFeatureData.description}
               </p>
             </div>
           </div>
