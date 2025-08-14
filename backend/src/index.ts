@@ -74,7 +74,7 @@ app.use('/api/expenses', authMiddleware, expenseRoutes);
 app.use('/api/reports', authMiddleware, reportRoutes);
 
 // Health check
-app.get('/api/health', (req, res) => {
+app.get('/api/health', (req, res: any) => {
   res.json({ 
     status: 'OK', 
     timestamp: new Date().toISOString(),
@@ -86,7 +86,7 @@ app.get('/api/health', (req, res) => {
 app.use(errorHandler);
 
 // 404 handler
-app.use('*', (req, res) => {
+app.use('*', (req, res: any) => {
   res.status(404).json({ message: 'Route not found' });
 });
 

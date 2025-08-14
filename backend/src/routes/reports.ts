@@ -12,7 +12,7 @@ const router = express.Router();
 router.get('/profit-loss', [
   query('startDate').isISO8601(),
   query('endDate').isISO8601()
-], async (req: any, res) => {
+], async (req: any, res: any) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -81,7 +81,7 @@ router.get('/profit-loss', [
 router.get('/sales-analysis', [
   query('startDate').isISO8601(),
   query('endDate').isISO8601()
-], async (req: any, res) => {
+], async (req: any, res: any) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -173,7 +173,7 @@ router.get('/sales-analysis', [
 router.get('/expense-breakdown', [
   query('startDate').isISO8601(),
   query('endDate').isISO8601()
-], async (req: any, res) => {
+], async (req: any, res: any) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -269,7 +269,7 @@ router.get('/export/excel', proPlanMiddleware, [
   query('startDate').isISO8601(),
   query('endDate').isISO8601(),
   query('reportType').isIn(['sales', 'expenses', 'profit-loss'])
-], async (req: any, res) => {
+], async (req: any, res: any) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {

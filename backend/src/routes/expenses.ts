@@ -13,7 +13,7 @@ router.post('/', [
   body('category').trim().notEmpty(),
   body('expenseDate').optional().isISO8601(),
   body('paymentMethod').optional().isIn(['cash', 'card', 'transfer', 'other'])
-], async (req: any, res) => {
+], async (req: any, res:any) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -62,7 +62,7 @@ router.get('/', [
   query('category').optional().trim(),
   query('minAmount').optional().isFloat({ min: 0 }),
   query('maxAmount').optional().isFloat({ min: 0 })
-], async (req: any, res) => {
+], async (req: any, res:any) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -124,7 +124,7 @@ router.get('/', [
 // @route   GET /api/expenses/stats/summary
 // @desc    Get expense summary statistics
 // @access  Private
-router.get('/stats/summary', async (req: any, res) => {
+router.get('/stats/summary', async (req: any, res:any) => {
   try {
     const { startDate, endDate } = req.query;
     

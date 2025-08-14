@@ -7,7 +7,7 @@ const router = express.Router();
 // @route   GET /api/users/profile
 // @desc    Get user profile
 // @access  Private
-router.get('/profile', async (req: any, res) => {
+router.get('/profile', async (req: any, res: any) => {
   try {
     res.json({
       success: true,
@@ -29,7 +29,7 @@ router.put('/profile', [
   body('firstName').optional().trim().notEmpty(),
   body('lastName').optional().trim().notEmpty(),
   body('businessName').optional().trim().notEmpty()
-], async (req: any, res) => {
+], async (req: any, res:any) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -73,7 +73,7 @@ router.put('/profile', [
 router.put('/change-password', [
   body('currentPassword').notEmpty(),
   body('newPassword').isLength({ min: 6 })
-], async (req: any, res) => {
+], async (req: any, res:any) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -86,7 +86,7 @@ router.put('/change-password', [
     const { currentPassword, newPassword } = req.body;
 
     // Verify current password
-    const user = await User.findById(req.user._id);
+    const user:any = await User.findById(req.user._id);
     const isMatch = await user.comparePassword(currentPassword);
     
     if (!isMatch) {
@@ -98,7 +98,7 @@ router.put('/change-password', [
 
     // Update password
     user.password = newPassword;
-    await user.save();
+    await user && user?.save();
 
     res.json({
       success: true,

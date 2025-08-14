@@ -14,7 +14,7 @@ router.post('/', [
   body('unitPrice').isFloat({ min: 0 }),
   body('category').trim().notEmpty(),
   body('paymentMethod').isIn(['cash', 'card', 'transfer', 'other'])
-], async (req: any, res) => {
+], async (req: any, res:any) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -62,7 +62,7 @@ router.get('/', [
   query('endDate').optional().isISO8601(),
   query('category').optional().trim(),
   query('customerName').optional().trim()
-], async (req: any, res) => {
+], async (req: any, res:any) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -86,6 +86,7 @@ router.get('/', [
     }
     
     if (req.query.category) filter.category = req.query.category;
+    if (req.query.totalAmount) filter.totalAmount = req.query.quantity * req.query.unitPrice;
     if (req.query.customerName) {
       filter.customerName = { $regex: req.query.customerName, $options: 'i' };
     }
@@ -122,7 +123,7 @@ router.get('/', [
 // @route   GET /api/sales/:id
 // @desc    Get sale by ID
 // @access  Private
-router.get('/:id', async (req: any, res) => {
+router.get('/:id', async (req: any, res:any) => {
   try {
     const sale = await Sale.findOne({ 
       _id: req.params.id, 
@@ -159,7 +160,7 @@ router.put('/:id', [
   body('unitPrice').optional().isFloat({ min: 0 }),
   body('category').optional().trim().notEmpty(),
   body('paymentMethod').optional().isIn(['cash', 'card', 'transfer', 'other'])
-], async (req: any, res) => {
+], async (req: any, res:any) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -204,7 +205,7 @@ router.put('/:id', [
 // @route   DELETE /api/sales/:id
 // @desc    Delete sale
 // @access  Private
-router.delete('/:id', async (req: any, res) => {
+router.delete('/:id', async (req: any, res:any) => {
   try {
     const sale = await Sale.findOneAndDelete({ 
       _id: req.params.id, 
@@ -239,7 +240,7 @@ router.delete('/:id', async (req: any, res) => {
 // @route   GET /api/sales/stats/summary
 // @desc    Get sales summary statistics
 // @access  Private
-router.get('/stats/summary', async (req: any, res) => {
+router.get('/stats/summary', async (req: any, res:any) => {
   try {
     const { startDate, endDate } = req.query;
     

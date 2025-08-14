@@ -10,20 +10,21 @@
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
   },
   "dependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-router-dom": "^6.20.1",
+    "@hookform/resolvers": "^3.3.2",
     "axios": "^1.6.2",
-    "recharts": "^2.8.0",
+    "clsx": "^2.0.0",
     "date-fns": "^2.30.0",
     "lucide-react": "^0.294.0",
-    "clsx": "^2.0.0",
-    "tailwind-merge": "^2.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "react-hook-form": "^7.48.2",
-    "zod": "^3.22.4",
-    "@hookform/resolvers": "^3.3.2",
     "react-hot-toast": "^2.4.1",
-    "socket.io-client": "^4.7.4"
+    "react-router-dom": "^6.20.1",
+    "recharts": "^2.8.0",
+    "socket.io-client": "^4.7.4",
+    "tailwind-merge": "^2.0.0",
+    "tailwindcss-animate": "^1.0.7",
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "@types/react": "^18.2.37",
@@ -40,7 +41,13 @@
     "typescript": "^5.2.2",
     "vite": "^5.0.0"
   },
-  "keywords": ["react", "typescript", "dashboard", "business", "shadcn"],
+  "keywords": [
+    "react",
+    "typescript",
+    "dashboard",
+    "business",
+    "shadcn"
+  ],
   "author": "Bizlytic Team",
   "license": "MIT"
 }

@@ -11,7 +11,7 @@ interface Sale {
   quantity: number
   unitPrice: number
   totalAmount: number
-  paymentMethod: string
+  paymentMethod?: string
   saleDate: string
   category: string
   notes?: string
@@ -22,7 +22,16 @@ export default function Sales() {
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [showAddForm, setShowAddForm] = useState(false)
-  const [editingSale, setEditingSale] = useState<Sale | null>(null)
+  const [editingSale, setEditingSale] = useState<Sale | null>({_id: '', customerName: '',
+  productName: '',
+  quantity: 0,
+  unitPrice: 0,
+  totalAmount: 0,
+  saleDate: new Date().toISOString().split('T')[0],
+  category: '',
+  notes: '',
+  paymentMethod: 'cash'
+})
 
   useEffect(() => {
     fetchSales()
@@ -52,6 +61,42 @@ export default function Sales() {
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>
     )
+  }
+
+  const handleAddSale = async () => {
+    try {   
+      if (editingSale?._id) {
+        const payload = {
+          ...editingSale,
+          totalAmount: editingSale.quantity * editingSale.unitPrice,  
+        }
+
+        // Update existing sale
+        await api.put(`/sales/${editingSale._id}`, payload)
+        toast.success('Sale updated successfully')
+      } else {
+        // Add new sale
+        const payload = {...editingSale };
+        delete payload._id;
+        await api.post('/sales', payload)
+        toast.success('Sale added successfully')
+      }
+
+      setShowAddForm(false);
+      setEditingSale({_id: '', customerName: '',
+  productName: '',
+  quantity: 0,
+  unitPrice: 0,
+  totalAmount: 0,
+  saleDate: new Date().toISOString().split('T')[0],
+  category: '',
+  notes: '',
+  paymentMethod: 'cash'
+});
+      fetchSales();
+    } catch (error) {
+      toast.error('Failed to save sale')
+    }
   }
 
   return (
@@ -177,40 +222,50 @@ export default function Sales() {
       </div>
 
       {/* Add/Edit Sale Form Modal */}
-      {(showAddForm || editingSale) && (
+      {(showAddForm || editingSale?._id) && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-background p-6 rounded-lg w-full max-w-md">
             <h2 className="text-xl font-bold mb-4">
-              {editingSale ? 'Edit Sale' : 'Add New Sale'}
+              {editingSale?._id ? 'Edit Sale' : 'Add New Sale'}
             </h2>
             <p className="text-muted-foreground mb-4">
-              {editingSale ? 'Update sale information' : 'Enter sale details'}
+              {editingSale?._id ? 'Update sale information' : 'Enter sale details'}
             </p>
             <div className="space-y-4">
               <input
                 type="text"
                 placeholder="Customer Name"
                 className="w-full px-3 py-2 border border-input bg-background text-foreground rounded-md"
+                value={editingSale?.customerName}
+                onChange={(e) => setEditingSale((prevState) => prevState ? { ...prevState, customerName: e.target.value || '' } : null)}  
               />
               <input
                 type="text"
                 placeholder="Product Name"
                 className="w-full px-3 py-2 border border-input bg-background text-foreground rounded-md"
+                value={editingSale?.productName}
+                onChange={(e) => setEditingSale((prevState) => prevState ? { ...prevState, productName: e.target.value || '' } : null)}   
               />
               <div className="grid grid-cols-2 gap-4">
                 <input
                   type="number"
                   placeholder="Quantity"
                   className="w-full px-3 py-2 border border-input bg-background text-foreground rounded-md"
+                  value={ editingSale?.quantity }
+                  onChange={(e) => setEditingSale((prevState) => prevState ? { ...prevState, quantity: parseInt(e.target.value) || 0 } : null)} 
                 />
                 <input
                   type="number"
                   step="0.01"
                   placeholder="Unit Price"
                   className="w-full px-3 py-2 border border-input bg-background text-foreground rounded-md"
+                  value={editingSale?.unitPrice}
+                  onChange={(e) => setEditingSale((prevState) => prevState ? { ...prevState, unitPrice: parseFloat(e.target.value) || 0 } : null)}  
                 />
               </div>
-              <select className="w-full px-3 py-2 border border-input bg-background text-foreground rounded-md">
+              <select className="w-full px-3 py-2 border border-input bg-background text-foreground rounded-md"
+                value={editingSale?.category }
+                onChange={(e) => setEditingSale((prevState) => prevState ? { ...prevState, category: e.target.value || '' } : null)}  >
                 <option value="">Select Category</option>
                 <option value="electronics">Electronics</option>
                 <option value="clothing">Clothing</option>
@@ -228,7 +283,7 @@ export default function Sales() {
               >
                 Cancel
               </button>
-              <button className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors">
+              <button onClick={handleAddSale} className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors">
                 {editingSale ? 'Update' : 'Add'} Sale
               </button>
             </div>
