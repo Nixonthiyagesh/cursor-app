@@ -18,7 +18,7 @@ export default function Login() {
     
     const success = await login(email, password)
     if (success) {
-      navigate('/dashboard')
+      navigate('/app/dashboard')
     }
     setLoading(false)
   }

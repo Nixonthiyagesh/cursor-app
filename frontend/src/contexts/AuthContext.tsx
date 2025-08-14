@@ -99,6 +99,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem('token')
     delete api.defaults.headers.common['Authorization']
     toast.success('Logged out successfully')
+    // Redirect to landing page after logout
+    window.location.href = '/'
   }
 
   const updateUser = (updates: Partial<User>) => {

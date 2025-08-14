@@ -68,7 +68,7 @@ export default function Register() {
     const success = await register(registerData)
     
     if (success) {
-      navigate('/dashboard')
+      navigate('/app/dashboard')
     }
     setLoading(false)
   }
