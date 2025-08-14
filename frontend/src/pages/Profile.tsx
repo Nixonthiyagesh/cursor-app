@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { usePayment } from '../contexts/PaymentContext'
-import { User, Building, Mail, Crown, Shield, Settings, CreditCard, Calendar, AlertCircle } from 'lucide-react'
+import { User, Building, Mail, Crown, Shield, Settings, CreditCard, Calendar, AlertCircle, RefreshCw } from 'lucide-react'
 import { formatDate } from '../lib/utils'
 import toast from 'react-hot-toast'
 import PricingPlans from '../components/ui/PricingPlans'
 
 export default function Profile() {
   const { user, updateUser } = useAuth()
-  const { subscriptionStatus, createPortalSession, cancelSubscription, loading } = usePayment()
+  const { subscriptionStatus, createPortalSession, cancelSubscription, loading, error, refreshSubscriptionStatus, testAuth } = usePayment()
   const [isEditing, setIsEditing] = useState(false)
   const [showPricing, setShowPricing] = useState(false)
   const [formData, setFormData] = useState({
@@ -62,11 +62,26 @@ export default function Profile() {
   }
 
   const handleCancelSubscription = async () => {
-    if (confirm('Are you sure you want to cancel your subscription? You will lose access to Pro features at the end of your current billing period.')) {
+    if (confirm('Are you sure you want to cancel your subscription? You will lose access to Pro features at the end of the current billing period.')) {
       const success = await cancelSubscription()
       if (success) {
         toast.success('Subscription will be canceled at the end of the current period')
       }
+    }
+  }
+
+  const handleRetrySubscriptionStatus = () => {
+    refreshSubscriptionStatus()
+  }
+
+  const handleTestAuth = async () => {
+    console.log('Testing authentication...')
+    const result = await testAuth()
+    console.log('Auth test result:', result)
+    if (result) {
+      toast.success('Authentication test passed!')
+    } else {
+      toast.error('Authentication test failed!')
     }
   }
 
@@ -178,7 +193,7 @@ export default function Profile() {
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-foreground mb-1">
+                    <label className="block text-sm font-medium text-muted-foreground mb-1">
                       First Name
                     </label>
                     <input
@@ -189,30 +204,30 @@ export default function Profile() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-foreground mb-1">
+                    <label className="block text-sm font-medium text-muted-foreground mb-1">
                       Last Name
                     </label>
                     <input
                       type="text"
                       value={formData.lastName}
                       onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                      className="w-full px-3 py-2 border border-input bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                      className="w-full px-3 py-2 border border-input bg-background text-foreground rounded-md hover:bg-accent transition-colors"
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-1">
+                  <label className="block text-sm font-medium text-muted-foreground mb-1">
                     Business Name
                   </label>
                   <input
                     type="text"
                     value={formData.businessName}
                     onChange={(e) => setFormData({ ...formData, businessName: e.target.value })}
-                    className="w-full px-3 py-2 border border-input bg-background text-foreground rounded-md focus:2 focus:ring-primary"
+                    className="w-full px-3 py-2 border border-input bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-1">
+                  <label className="block text-sm font-medium text-muted-foreground mb-1">
                     Email
                   </label>
                   <input
@@ -243,9 +258,57 @@ export default function Profile() {
 
           {/* Subscription Management */}
           <div className="bg-card p-6 rounded-lg border">
-            <h2 className="text-lg font-semibold text-foreground mb-4">Subscription Management</h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-foreground">Subscription Management</h2>
+              <div className="flex gap-2">
+                <button
+                  onClick={handleTestAuth}
+                  className="p-2 text-blue-600 hover:text-blue-700 transition-colors"
+                  title="Test authentication"
+                >
+                  Test Auth
+                </button>
+                <button
+                  onClick={handleRetrySubscriptionStatus}
+                  disabled={loading}
+                  className="p-2 text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
+                  title="Refresh subscription status"
+                >
+                  <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                </button>
+              </div>
+            </div>
+            
             <div className="space-y-4">
-              {subscriptionStatus ? (
+              {/* Temporary Backend Notice */}
+              <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                <div className="flex items-center gap-2 text-yellow-600 dark:text-yellow-400">
+                  <AlertCircle className="h-5 w-5" />
+                  <div>
+                    <p className="font-medium">Backend Temporarily Unavailable</p>
+                    <p className="text-sm">The payment system is currently in maintenance mode. All other features are working normally.</p>
+                  </div>
+                </div>
+              </div>
+
+              {error ? (
+                <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                  <div className="flex items-center gap-2 text-red-600 dark:text-red-400">
+                    <AlertCircle className="h-5 w-5" />
+                    <div>
+                      <p className="font-medium">Error loading subscription</p>
+                      <p className="text-sm">{error}</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={handleRetrySubscriptionStatus}
+                    disabled={loading}
+                    className="mt-3 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors disabled:opacity-50"
+                  >
+                    Try Again
+                  </button>
+                </div>
+              ) : subscriptionStatus ? (
                 <>
                   <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
                     <div className="flex items-center gap-3">
@@ -316,10 +379,14 @@ export default function Profile() {
                     )}
                   </div>
                 </>
-              ) : (
+              ) : loading ? (
                 <div className="text-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
                   <p className="text-muted-foreground">Loading subscription details...</p>
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">No subscription information available</p>
                 </div>
               )}
             </div>

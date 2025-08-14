@@ -11,6 +11,29 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2023-10-16',
 });
 
+// @route   GET /api/payments/test
+// @desc    Test endpoint to verify authentication
+// @access  Private
+router.get('/test', authMiddleware, async (req: any, res: any) => {
+  try {
+    res.json({
+      success: true,
+      message: 'Authentication working',
+      user: {
+        id: req.user._id,
+        email: req.user.email,
+        plan: req.user.plan
+      }
+    });
+  } catch (error) {
+    console.error('Test endpoint error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+});
+
 // @route   POST /api/payments/create-checkout-session
 // @desc    Create Stripe checkout session for subscription
 // @access  Private
@@ -337,7 +360,7 @@ router.get('/subscription-status', authMiddleware, async (req: any, res: any) =>
       success: true,
       data: {
         plan: user.plan,
-        subscriptionStatus: user.subscriptionStatus,
+        subscriptionStatus: user.subscriptionStatus || 'active',
         subscriptionDetails,
         planUpdatedAt: user.planUpdatedAt,
       }
