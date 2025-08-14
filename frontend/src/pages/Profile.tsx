@@ -280,17 +280,6 @@ export default function Profile() {
             </div>
             
             <div className="space-y-4">
-              {/* Temporary Backend Notice */}
-              <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-                <div className="flex items-center gap-2 text-yellow-600 dark:text-yellow-400">
-                  <AlertCircle className="h-5 w-5" />
-                  <div>
-                    <p className="font-medium">Backend Temporarily Unavailable</p>
-                    <p className="text-sm">The payment system is currently in maintenance mode. All other features are working normally.</p>
-                  </div>
-                </div>
-              </div>
-
               {error ? (
                 <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
                   <div className="flex items-center gap-2 text-red-600 dark:text-red-400">
