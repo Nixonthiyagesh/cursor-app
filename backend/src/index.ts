@@ -13,6 +13,7 @@ import salesRoutes from './routes/sales';
 import expenseRoutes from './routes/expenses';
 import reportRoutes from './routes/reports';
 import calendarRoutes from './routes/calendar';
+import paymentRoutes from './routes/payments';
 import { errorHandler } from './middleware/errorHandler';
 import { authMiddleware } from './middleware/auth';
 
@@ -37,6 +38,11 @@ app.use(cors({
   credentials: true
 }));
 app.use(morgan('combined'));
+
+// Special handling for Stripe webhooks (raw body)
+app.use('/api/payments/webhook', express.raw({ type: 'application/json' }));
+
+// Regular JSON parsing for other routes
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
@@ -74,6 +80,7 @@ app.use('/api/sales', authMiddleware, salesRoutes);
 app.use('/api/expenses', authMiddleware, expenseRoutes);
 app.use('/api/reports', authMiddleware, reportRoutes);
 app.use('/api/calendar', authMiddleware, calendarRoutes);
+app.use('/api/payments', paymentRoutes);
 
 // Health check
 app.get('/api/health', (req, res: any) => {
@@ -96,4 +103,5 @@ server.listen(PORT, () => {
   console.log(`🚀 Bizlytic backend server running on port ${PORT}`);
   console.log(`📊 Environment: ${process.env.NODE_ENV}`);
   console.log(`🔗 Health check: http://localhost:${PORT}/api/health`);
+  console.log(`💳 Stripe integration: ${process.env.STRIPE_SECRET_KEY ? 'Enabled' : 'Disabled'}`);
 });

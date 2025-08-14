@@ -10,6 +10,12 @@ export interface IUser extends Document {
   plan: 'basic' | 'pro';
   isActive: boolean;
   lastLogin: Date;
+  stripeCustomerId?: string;
+  subscriptionId?: string;
+  subscriptionStatus?: 'active' | 'canceled' | 'past_due' | 'unpaid' | 'trialing';
+  planUpdatedAt?: Date;
+  lastPaymentAt?: Date;
+  trialEndsAt?: Date;
   createdAt: Date;
   updatedAt: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
@@ -59,6 +65,28 @@ const userSchema = new Schema<IUser>({
   lastLogin: {
     type: Date,
     default: Date.now
+  },
+  stripeCustomerId: {
+    type: String,
+    sparse: true
+  },
+  subscriptionId: {
+    type: String,
+    sparse: true
+  },
+  subscriptionStatus: {
+    type: String,
+    enum: ['active', 'canceled', 'past_due', 'unpaid', 'trialing'],
+    default: 'active'
+  },
+  planUpdatedAt: {
+    type: Date
+  },
+  lastPaymentAt: {
+    type: Date
+  },
+  trialEndsAt: {
+    type: Date
   }
 }, {
   timestamps: true
@@ -88,5 +116,12 @@ userSchema.methods.toJSON = function() {
   delete userObject.password;
   return userObject;
 };
+
+// Indexes for better query performance
+userSchema.index({ email: 1 });
+userSchema.index({ stripeCustomerId: 1 });
+userSchema.index({ subscriptionId: 1 });
+userSchema.index({ plan: 1 });
+userSchema.index({ subscriptionStatus: 1 });
 
 export default mongoose.model<IUser>('User', userSchema);

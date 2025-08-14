@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
+import { PaymentProvider } from './contexts/PaymentContext'
 import { ThemeProvider } from './contexts/ThemeContext'
 import Layout from './components/Layout'
 import Landing from './pages/Landing'
@@ -89,7 +90,9 @@ function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <AppRoutes />
+        <PaymentProvider>
+          <AppRoutes />
+        </PaymentProvider>
       </AuthProvider>
     </ThemeProvider>
   )
