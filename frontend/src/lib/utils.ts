@@ -196,3 +196,12 @@ export function isEmpty(value: any): boolean {
 export function sleep(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
+
+export const formatTime = (dateString: string): string => {
+  const date = new Date(dateString)
+  return date.toLocaleTimeString('en-US', { 
+    hour: 'numeric', 
+    minute: '2-digit',
+    hour12: true 
+  })
+}

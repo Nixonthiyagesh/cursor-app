@@ -12,6 +12,7 @@ import userRoutes from './routes/users';
 import salesRoutes from './routes/sales';
 import expenseRoutes from './routes/expenses';
 import reportRoutes from './routes/reports';
+import calendarRoutes from './routes/calendar';
 import { errorHandler } from './middleware/errorHandler';
 import { authMiddleware } from './middleware/auth';
 
@@ -72,6 +73,7 @@ app.use('/api/users', authMiddleware, userRoutes);
 app.use('/api/sales', authMiddleware, salesRoutes);
 app.use('/api/expenses', authMiddleware, expenseRoutes);
 app.use('/api/reports', authMiddleware, reportRoutes);
+app.use('/api/calendar', authMiddleware, calendarRoutes);
 
 // Health check
 app.get('/api/health', (req, res: any) => {
