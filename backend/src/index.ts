@@ -53,6 +53,26 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// Test endpoint for debugging
+app.get('/api/test', (req, res) => {
+  res.json({ 
+    message: 'Backend is working!',
+    timestamp: new Date().toISOString(),
+    method: req.method,
+    url: req.url,
+    headers: req.headers
+  });
+});
+
+// Test POST endpoint
+app.post('/api/test', (req, res) => {
+  res.json({ 
+    message: 'POST request received!',
+    body: req.body,
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/sales', salesRoutes);
