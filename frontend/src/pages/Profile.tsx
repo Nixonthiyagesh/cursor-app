@@ -1,17 +1,33 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
-import { User, Building, Mail, Crown, Shield, Settings } from 'lucide-react'
+import { usePayment } from '../contexts/PaymentContext'
+import { User, Building, Mail, Crown, Shield, Settings, CreditCard, Calendar, AlertCircle, RefreshCw } from 'lucide-react'
+import { formatDate } from '../lib/utils'
 import toast from 'react-hot-toast'
+import PricingPlans from '../components/ui/PricingPlans'
 
 export default function Profile() {
   const { user, updateUser } = useAuth()
+  const { subscriptionStatus, createPortalSession, cancelSubscription, loading, error, refreshSubscriptionStatus, testAuth } = usePayment()
   const [isEditing, setIsEditing] = useState(false)
+  const [showPricing, setShowPricing] = useState(false)
   const [formData, setFormData] = useState({
     firstName: user?.firstName || '',
     lastName: user?.lastName || '',
     businessName: user?.businessName || '',
     email: user?.email || ''
   })
+
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        businessName: user.businessName || '',
+        email: user.email || ''
+      })
+    }
+  }, [user])
 
   const handleSave = async () => {
     try {
@@ -29,9 +45,94 @@ export default function Profile() {
       firstName: user?.firstName || '',
       lastName: user?.lastName || '',
       businessName: user?.businessName || '',
-      email: user?.email || ''
+      email: user.email || ''
     })
     setIsEditing(false)
+  }
+
+  const handleManageSubscription = async () => {
+    try {
+      const portalUrl = await createPortalSession()
+      if (portalUrl) {
+        window.location.href = portalUrl
+      }
+    } catch (error) {
+      toast.error('Failed to open subscription management')
+    }
+  }
+
+  const handleCancelSubscription = async () => {
+    if (confirm('Are you sure you want to cancel your subscription? You will lose access to Pro features at the end of the current billing period.')) {
+      const success = await cancelSubscription()
+      if (success) {
+        toast.success('Subscription will be canceled at the end of the current period')
+      }
+    }
+  }
+
+  const handleRetrySubscriptionStatus = () => {
+    refreshSubscriptionStatus()
+  }
+
+  const handleTestAuth = async () => {
+    console.log('Testing authentication...')
+    const result = await testAuth()
+    console.log('Auth test result:', result)
+    if (result) {
+      toast.success('Authentication test passed!')
+    } else {
+      toast.error('Authentication test failed!')
+    }
+  }
+
+  const getSubscriptionStatusColor = (status: string) => {
+    switch (status) {
+      case 'active':
+        return 'text-green-600'
+      case 'canceled':
+        return 'text-red-600'
+      case 'past_due':
+        return 'text-yellow-600'
+      case 'unpaid':
+        return 'text-red-600'
+      default:
+        return 'text-muted-foreground'
+    }
+  }
+
+  const getSubscriptionStatusText = (status: string) => {
+    switch (status) {
+      case 'active':
+        return 'Active'
+      case 'canceled':
+        return 'Canceled'
+      case 'past_due':
+        return 'Past Due'
+      case 'unpaid':
+        return 'Unpaid'
+      default:
+        return status
+    }
+  }
+
+  if (showPricing) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">Pricing Plans</h1>
+            <p className="text-muted-foreground">Choose the perfect plan for your business</p>
+          </div>
+          <button
+            onClick={() => setShowPricing(false)}
+            className="px-4 py-2 border border-input bg-background text-foreground rounded-md hover:bg-accent transition-colors"
+          >
+            Back to Profile
+          </button>
+        </div>
+        <PricingPlans />
+      </div>
+    )
   }
 
   return (
@@ -92,7 +193,7 @@ export default function Profile() {
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-foreground mb-1">
+                    <label className="block text-sm font-medium text-muted-foreground mb-1">
                       First Name
                     </label>
                     <input
@@ -103,19 +204,19 @@ export default function Profile() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-foreground mb-1">
+                    <label className="block text-sm font-medium text-muted-foreground mb-1">
                       Last Name
                     </label>
                     <input
                       type="text"
                       value={formData.lastName}
                       onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                      className="w-full px-3 py-2 border border-input bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                      className="w-full px-3 py-2 border border-input bg-background text-foreground rounded-md hover:bg-accent transition-colors"
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-1">
+                  <label className="block text-sm font-medium text-muted-foreground mb-1">
                     Business Name
                   </label>
                   <input
@@ -126,7 +227,7 @@ export default function Profile() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-1">
+                  <label className="block text-sm font-medium text-muted-foreground mb-1">
                     Email
                   </label>
                   <input
@@ -153,6 +254,131 @@ export default function Profile() {
                 </div>
               </div>
             )}
+          </div>
+
+          {/* Subscription Management */}
+          <div className="bg-card p-6 rounded-lg border">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-foreground">Subscription Management</h2>
+              <div className="flex gap-2">
+                <button
+                  onClick={handleTestAuth}
+                  className="p-2 text-blue-600 hover:text-blue-700 transition-colors"
+                  title="Test authentication"
+                >
+                  Test Auth
+                </button>
+                <button
+                  onClick={handleRetrySubscriptionStatus}
+                  disabled={loading}
+                  className="p-2 text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
+                  title="Refresh subscription status"
+                >
+                  <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                </button>
+              </div>
+            </div>
+            
+            <div className="space-y-4">
+              {error ? (
+                <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                  <div className="flex items-center gap-2 text-red-600 dark:text-red-400">
+                    <AlertCircle className="h-5 w-5" />
+                    <div>
+                      <p className="font-medium">Error loading subscription</p>
+                      <p className="text-sm">{error}</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={handleRetrySubscriptionStatus}
+                    disabled={loading}
+                    className="mt-3 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors disabled:opacity-50"
+                  >
+                    Try Again
+                  </button>
+                </div>
+              ) : subscriptionStatus ? (
+                <>
+                  <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <Crown className="h-5 w-5 text-yellow-500" />
+                      <div>
+                        <p className="font-medium text-foreground">Current Plan</p>
+                        <p className="text-sm text-muted-foreground capitalize">
+                          {subscriptionStatus.plan} Plan
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className={`font-medium ${getSubscriptionStatusColor(subscriptionStatus.subscriptionStatus)}`}>
+                        {getSubscriptionStatusText(subscriptionStatus.subscriptionStatus)}
+                      </p>
+                      {subscriptionStatus.planUpdatedAt && (
+                        <p className="text-sm text-muted-foreground">
+                          Updated {formatDate(subscriptionStatus.planUpdatedAt)}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {subscriptionStatus.subscriptionDetails && (
+                    <div className="p-4 bg-muted rounded-lg">
+                      <h4 className="font-medium text-foreground mb-2">Subscription Details</h4>
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <span className="text-muted-foreground">Status:</span>
+                          <p className="font-medium">{subscriptionStatus.subscriptionDetails.status}</p>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Next Billing:</span>
+                          <p className="font-medium">
+                            {formatDate(new Date(subscriptionStatus.subscriptionDetails.currentPeriodEnd * 1000))}
+                          </p>
+                        </div>
+                        {subscriptionStatus.subscriptionDetails.cancelAtPeriodEnd && (
+                          <div className="col-span-2">
+                            <div className="flex items-center gap-2 text-yellow-600">
+                              <AlertCircle className="h-4 w-4" />
+                              <span className="text-sm font-medium">
+                                Subscription will be canceled at the end of the current period
+                              </span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleManageSubscription}
+                      disabled={loading}
+                      className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors disabled:opacity-50"
+                    >
+                      Manage Subscription
+                    </button>
+                    {subscriptionStatus.plan === 'pro' && (
+                      <button
+                        onClick={handleCancelSubscription}
+                        disabled={loading}
+                        className="px-4 py-2 border border-destructive text-destructive rounded-md hover:bg-destructive hover:text-destructive-foreground transition-colors disabled:opacity-50"
+                      >
+                        Cancel Subscription
+                      </button>
+                    )}
+                  </div>
+                </>
+              ) : loading ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                  <p className="text-muted-foreground">Loading subscription details...</p>
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">No subscription information available</p>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Account Security */}
@@ -240,8 +466,11 @@ export default function Profile() {
                 <p className="text-sm text-muted-foreground mb-4">
                   Get access to advanced features, cloud sync, and priority support.
                 </p>
-                <button className="w-full bg-yellow-600 text-white px-4 py-2 rounded-md hover:bg-yellow-700 transition-colors">
-                  Upgrade Now
+                <button 
+                  onClick={() => setShowPricing(true)}
+                  className="w-full bg-yellow-600 text-white px-4 py-2 rounded-md hover:bg-yellow-700 transition-colors"
+                >
+                  View Plans
                 </button>
               </div>
             </div>
@@ -254,13 +483,13 @@ export default function Profile() {
               <div className="flex justify-between">
                 <span className="text-sm text-muted-foreground">Member since</span>
                 <span className="text-sm font-medium text-foreground">
-                  {user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
+                  {user?.createdAt ? formatDate(user.createdAt) : 'N/A'}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm text-muted-foreground">Last login</span>
                 <span className="text-sm font-medium text-foreground">
-                  {user?.lastLogin ? new Date(user.lastLogin).toLocaleDateString() : 'N/A'}
+                  {user?.lastLogin ? formatDate(user.lastLogin) : 'N/A'}
                 </span>
               </div>
               <div className="flex justify-between">

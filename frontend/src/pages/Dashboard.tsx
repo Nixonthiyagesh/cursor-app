@@ -48,6 +48,16 @@ interface CategoryData {
   value: number
 }
 
+interface RecentTransaction {
+  id: string
+  type: 'sale' | 'expense'
+  title: string
+  amount: number
+  date: string
+  category?: string
+  description?: string
+}
+
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8']
 
 export default function Dashboard() {
@@ -55,6 +65,7 @@ export default function Dashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [chartData, setChartData] = useState<ChartData[]>([])
   const [topCategories, setTopCategories] = useState<CategoryData[]>([])
+  const [recentTransactions, setRecentTransactions] = useState<RecentTransaction[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -70,7 +81,7 @@ export default function Dashboard() {
       const startDate = new Date()
       startDate.setDate(startDate.getDate() - 30)
 
-      const [salesStats, expenseStats, salesAnalysis] = await Promise.all([
+      const [salesStats, expenseStats, salesAnalysis, recentData] = await Promise.all([
         api.get('/sales/stats/summary', {
           params: { startDate: startDate.toISOString(), endDate: endDate.toISOString() }
         }),
@@ -79,6 +90,9 @@ export default function Dashboard() {
         }),
         api.get('/reports/sales-analysis', {
           params: { startDate: startDate.toISOString(), endDate: endDate.toISOString() }
+        }),
+        api.get('/dashboard/recent-transactions', {
+          params: { limit: 5 }
         })
       ])
 
@@ -118,11 +132,37 @@ export default function Dashboard() {
         setTopCategories(categoryData)
       }
 
+      // Set recent transactions
+      if (recentData.data.success) {
+        setRecentTransactions(recentData.data.data)
+      }
+
     } catch (error) {
       console.error('Error fetching dashboard data:', error)
     } finally {
       setLoading(false)
     }
+  }
+
+  const getTransactionIcon = (type: 'sale' | 'expense') => {
+    if (type === 'sale') {
+      return <TrendingUp className="h-4 w-4 text-green-600 dark:text-green-400" />
+    }
+    return <CreditCard className="h-4 w-4 text-red-600 dark:text-red-400" />
+  }
+
+  const getTransactionColor = (type: 'sale' | 'expense') => {
+    if (type === 'sale') {
+      return 'bg-green-100 dark:bg-green-900'
+    }
+    return 'bg-red-100 dark:bg-red-900'
+  }
+
+  const getTransactionTitle = (transaction: RecentTransaction) => {
+    if (transaction.type === 'sale') {
+      return `Sale: ${transaction.title}`
+    }
+    return `Expense: ${transaction.title}`
   }
 
   if (loading) {
@@ -281,52 +321,36 @@ export default function Dashboard() {
       <div className="bg-card p-6 rounded-lg border">
         <h3 className="text-lg font-semibold text-foreground mb-4">Recent Activity</h3>
         <div className="space-y-4">
-          <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-green-100 rounded-full dark:bg-green-900">
-                <TrendingUp className="h-4 w-4 text-green-600 dark:text-green-400" />
+          {recentTransactions.length > 0 ? (
+            recentTransactions.map((transaction) => (
+              <div key={transaction.id} className="flex items-center justify-between p-4 bg-muted rounded-lg">
+                <div className="flex items-center space-x-3">
+                  <div className={`p-2 ${getTransactionColor(transaction.type)} rounded-full`}>
+                    {getTransactionIcon(transaction.type)}
+                  </div>
+                  <div>
+                    <p className="font-medium text-foreground">{getTransactionTitle(transaction)}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {transaction.category && `Category: ${transaction.category}`}
+                      {transaction.description && ` - ${transaction.description}`}
+                    </p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className={`font-medium ${transaction.type === 'sale' ? 'text-green-600' : 'text-red-600'}`}>
+                    {transaction.type === 'sale' ? '+' : '-'}{formatCurrency(transaction.amount)}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {formatDate(transaction.date)}
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="font-medium text-foreground">New sale recorded</p>
-                <p className="text-sm text-muted-foreground">Product: Premium Widget</p>
-              </div>
+            ))
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">No recent transactions. Start adding sales and expenses to see activity here.</p>
             </div>
-            <div className="text-right">
-              <p className="font-medium text-foreground">{formatCurrency(299.99)}</p>
-              <p className="text-sm text-muted-foreground">2 hours ago</p>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-red-100 rounded-full dark:bg-red-900">
-                <CreditCard className="h-4 w-4 text-red-600 dark:text-red-400" />
-              </div>
-              <div>
-                <p className="font-medium text-foreground">Expense added</p>
-                <p className="text-sm text-muted-foreground">Office supplies</p>
-              </div>
-            </div>
-            <div className="text-right">
-              <p className="font-medium text-foreground">{formatCurrency(89.50)}</p>
-              <p className="text-sm text-muted-foreground">1 day ago</p>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-blue-100 rounded-full dark:bg-blue-900">
-                <Calendar className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-              </div>
-              <div>
-                <p className="font-medium text-foreground">Monthly report generated</p>
-                <p className="text-sm text-muted-foreground">December 2024</p>
-              </div>
-            </div>
-            <div className="text-right">
-              <p className="text-sm text-muted-foreground">3 days ago</p>
-            </div>
-          </div>
+          )}
         </div>
       </div>
     </div>

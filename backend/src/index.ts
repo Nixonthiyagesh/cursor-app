@@ -12,6 +12,9 @@ import userRoutes from './routes/users';
 import salesRoutes from './routes/sales';
 import expenseRoutes from './routes/expenses';
 import reportRoutes from './routes/reports';
+import calendarRoutes from './routes/calendar';
+import paymentRoutes from './routes/payments';
+import dashboardRoutes from './routes/dashboard';
 import { errorHandler } from './middleware/errorHandler';
 import { authMiddleware } from './middleware/auth';
 
@@ -36,13 +39,18 @@ app.use(cors({
   credentials: true
 }));
 app.use(morgan('combined'));
+
+// Special handling for Stripe webhooks (raw body)
+app.use('/api/payments/webhook', express.raw({ type: 'application/json' }));
+
+// Regular JSON parsing for other routes
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Database connection
 mongoose.connect(MONGODB_URI)
   .then(() => {
-    console.log('✅ Connected to MongoDB');
+    console.log('✅ Connected to MongoDB Atlas');
   })
   .catch((error) => {
     console.error('❌ MongoDB connection error:', error);
@@ -72,13 +80,17 @@ app.use('/api/users', authMiddleware, userRoutes);
 app.use('/api/sales', authMiddleware, salesRoutes);
 app.use('/api/expenses', authMiddleware, expenseRoutes);
 app.use('/api/reports', authMiddleware, reportRoutes);
+app.use('/api/calendar', authMiddleware, calendarRoutes);
+app.use('/api/payments', paymentRoutes);
+app.use('/api/dashboard', authMiddleware, dashboardRoutes);
 
 // Health check
 app.get('/api/health', (req, res: any) => {
   res.json({ 
     status: 'OK', 
     timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV 
+    environment: process.env.NODE_ENV,
+    database: 'Connected to MongoDB Atlas'
   });
 });
 
@@ -94,4 +106,6 @@ server.listen(PORT, () => {
   console.log(`🚀 Bizlytic backend server running on port ${PORT}`);
   console.log(`📊 Environment: ${process.env.NODE_ENV}`);
   console.log(`🔗 Health check: http://localhost:${PORT}/api/health`);
+  console.log(`💳 Stripe integration: ${process.env.STRIPE_SECRET_KEY ? 'Enabled' : 'Disabled'}`);
+  console.log(`🗄️  Database: MongoDB Atlas`);
 });
